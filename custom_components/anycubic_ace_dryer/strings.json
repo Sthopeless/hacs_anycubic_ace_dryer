@@ -26,17 +26,35 @@
       "already_configured": "This printer is already configured."
     }
   },
-  "entity": {
-    "select": {
-      "material_preset": {
-        "state": {
-          "PLA": "PLA (45 °C)",
-          "PETG": "PETG (55 °C)",
-          "ABS": "ABS (65 °C)",
-          "Custom": "Custom"
+  "options": {
+    "step": {
+      "init": {
+        "title": "Material Presets",
+        "description": "Enter up to 8 material presets. Format: **Name:Temperature** (e.g. `PLA:45`). Leave a slot blank to disable it.",
+        "data": {
+          "preset_1": "Preset 1",
+          "preset_2": "Preset 2",
+          "preset_3": "Preset 3",
+          "preset_4": "Preset 4",
+          "preset_5": "Preset 5",
+          "preset_6": "Preset 6",
+          "preset_7": "Preset 7",
+          "preset_8": "Preset 8"
         }
       }
     },
+    "error": {
+      "preset_1": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_2": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_3": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_4": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_5": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_6": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_7": "Invalid format — use Name:Temperature (e.g. PLA:45)",
+      "preset_8": "Invalid format — use Name:Temperature (e.g. PLA:45)"
+    }
+  },
+  "entity": {
     "sensor": {
       "status": {
         "state": {

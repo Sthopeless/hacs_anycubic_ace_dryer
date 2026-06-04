@@ -17,12 +17,19 @@ ACE_MODELS: dict[str, tuple[str, int, int]] = {
     "ace_2_pro": ("ACE 2 Pro", 30, 70),
 }
 
-MATERIAL_PRESETS: dict[str, int | None] = {
-    "PLA":    45,
-    "PETG":   55,
-    "ABS":    65,
-    "Custom": None,
-}
+# Default presets shipped with the integration — "Name:Temperature" format.
+# Users can override all 8 slots via Settings → Integrations → Configure.
+NUM_PRESET_SLOTS = 8
+DEFAULT_PRESETS: list[str] = [
+    "PLA:45",
+    "PETG:55",
+    "ABS:65",
+    "TPU-95A:35",
+    "ASA:70",
+    "",
+    "",
+    "",
+]
 
 DRYER_STATUS_STOP    = "stop"
 DRYER_STATUS_DRYING  = "drying"

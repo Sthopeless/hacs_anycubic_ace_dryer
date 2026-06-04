@@ -4,15 +4,45 @@ import logging
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.core import callback
 
 from .api import AceDryerAPI, CannotConnect, InvalidResponse
-from .const import ACE_MODELS, CONF_HOST, CONF_NUM_UNITS, CONF_UNIT_MODELS, DOMAIN
+from .const import (
+    ACE_MODELS,
+    CONF_HOST,
+    CONF_NUM_UNITS,
+    CONF_UNIT_MODELS,
+    DEFAULT_PRESETS,
+    DOMAIN,
+    NUM_PRESET_SLOTS,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 _MODEL_OPTIONS = {k: v[0] for k, v in ACE_MODELS.items()}  # {"ace": "ACE", ...}
 
+
+def _validate_preset(value: str) -> str:
+    """Accept empty string or 'Name:Temperature' (20–100 °C)."""
+    value = value.strip()
+    if not value:
+        return ""
+    if ":" not in value:
+        raise vol.Invalid("Use format  Name:Temperature  (e.g. PLA:45)")
+    name, _, temp_str = value.partition(":")
+    if not name.strip():
+        raise vol.Invalid("Material name cannot be empty")
+    try:
+        temp = int(temp_str.strip())
+    except ValueError:
+        raise vol.Invalid("Temperature must be a whole number")
+    if not 20 <= temp <= 100:
+        raise vol.Invalid("Temperature must be between 20 and 100 °C")
+    return f"{name.strip()}:{temp}"
+
+
+# ── Config flow (initial setup wizard) ──────────────────────────────────────
 
 class AceDryerConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
@@ -20,6 +50,11 @@ class AceDryerConfigFlow(ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         self._host: str = ""
         self._num_units: int = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(entry: ConfigEntry) -> AceDryerOptionsFlow:
+        return AceDryerOptionsFlow(entry)
 
     # ── Step 1: IP address + connection check ────────────────────
     async def async_step_user(
@@ -84,4 +119,48 @@ class AceDryerConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="models",
             data_schema=vol.Schema(schema),
             description_placeholders={"num_units": str(self._num_units)},
+        )
+
+
+# ── Options flow (Configure button in Integrations) ─────────────────────────
+
+class AceDryerOptionsFlow(OptionsFlow):
+    def __init__(self, entry: ConfigEntry) -> None:
+        self._entry = entry
+
+    async def async_step_init(
+        self, user_input: dict | None = None
+    ) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            # Validate all non-empty slots
+            validated: dict[str, str] = {}
+            valid = True
+            for i in range(1, NUM_PRESET_SLOTS + 1):
+                key = f"preset_{i}"
+                raw = user_input.get(key, "").strip()
+                try:
+                    validated[key] = _validate_preset(raw)
+                except vol.Invalid as exc:
+                    errors[key] = str(exc)
+                    valid = False
+            if valid:
+                return self.async_create_entry(title="", data=validated)
+
+        # Build schema with current saved values (or defaults on first run)
+        schema: dict = {}
+        for i in range(1, NUM_PRESET_SLOTS + 1):
+            key = f"preset_{i}"
+            default = self._entry.options.get(
+                key,
+                DEFAULT_PRESETS[i - 1] if i <= len(DEFAULT_PRESETS) else "",
+            )
+            schema[vol.Optional(key, default=default)] = str
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(schema),
+            errors=errors,
+            description_placeholders={"format_hint": "Name:Temperature  (e.g. PLA:45)"},
         )
