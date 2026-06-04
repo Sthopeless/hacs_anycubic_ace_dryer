@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Moonraker",
+        "description": "Enter the IP address of your Anycubic Kobra printer running Rinkhals with the mmu_ace plugin.",
+        "data": {
+          "host": "Printer IP Address"
+        }
+      },
+      "models": {
+        "title": "Select ACE Hardware Models",
+        "description": "{num_units} ACE unit(s) detected. Select the hardware model for each — this sets the correct maximum drying temperature.",
+        "data": {
+          "unit_0_model": "ACE Unit 0 Model",
+          "unit_1_model": "ACE Unit 1 Model"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to Moonraker. Check the IP address and make sure the printer is powered on.",
+      "invalid_response": "Unexpected response from Moonraker. Make sure Rinkhals is installed with the mmu_ace plugin enabled.",
+      "unknown": "Unexpected error — check the Home Assistant logs for details."
+    },
+    "abort": {
+      "already_configured": "This printer is already configured."
+    }
+  },
+  "entity": {
+    "select": {
+      "material_preset": {
+        "state": {
+          "PLA": "PLA (45 °C)",
+          "PETG": "PETG (55 °C)",
+          "ABS": "ABS (65 °C)",
+          "Custom": "Custom"
+        }
+      }
+    },
+    "sensor": {
+      "status": {
+        "state": {
+          "Stopped": "Stopped",
+          "Drying": "Drying",
+          "Heater Error": "Heater Error"
+        }
+      }
+    }
+  }
+}
